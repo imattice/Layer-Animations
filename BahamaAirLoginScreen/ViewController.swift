@@ -113,41 +113,15 @@ class ViewController: UIViewController {
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
 
-//	the start and end values can both be specified in the layer animation
-//  heading.center.x  -= view.bounds.width
-//    username.center.x -= view.bounds.width
-//    password.center.x -= view.bounds.width
-
-    loginButton.center.y += 30.0
-    loginButton.alpha = 0.0
-
 	let flyRight = CABasicAnimation(keyPath: "position.x")
 	flyRight.fromValue = -view.bounds.size.width/2
 	flyRight.toValue = view.bounds.size.width/2
 	flyRight.duration = 0.5
 	//	this ends the presentation layer, but the actual object layer is not in this location
 	//	flyRight.isRemovedOnCompletion = false
-
-	flyRight.delegate = self
-
-	flyRight.setValue("form", forKey: "name")
-
-	flyRight.setValue(heading.layer, forKey: "layer")
-	heading.layer.add(flyRight, forKey: nil)
-
 	//Adjust the fill mode to ensure the animation begins outside at the start of the animation frames and ends at the end of the frames
-	flyRight.fillMode = kCAFillModeBoth
+//	flyRight.fillMode = kCAFillModeBoth
 
-	flyRight.beginTime = CACurrentMediaTime() + 0.3
-	flyRight.setValue(username.layer, forKey: "layer")
-	username.layer.add(flyRight, forKey: nil)
-	username.layer.position.x = view.bounds.size.width/2
-
-
-	flyRight.beginTime = CACurrentMediaTime() + 0.4
-	flyRight.setValue(password.layer, forKey: "layer")
-	password.layer.add(flyRight, forKey: nil)
-	password.layer.position.x = view.bounds.size.width/2
 
 	let fadeIn = CABasicAnimation(keyPath: "opacity")
 	fadeIn.fromValue = 0.0
@@ -161,24 +135,59 @@ class ViewController: UIViewController {
 
 		print(fadeIn.beginTime)
 	}
+
+	let labelEntryAnimation = CAAnimationGroup()
+		labelEntryAnimation.animations = [flyRight, fadeIn]
+		labelEntryAnimation.delegate = self
+		labelEntryAnimation.setValue("form", forKey: "name")
+		labelEntryAnimation.fillMode = kCAFillModeBoth
+
+
+	labelEntryAnimation.setValue(heading.layer, forKey: "layer")
+	heading.layer.add(labelEntryAnimation, forKey: nil)
+
+	labelEntryAnimation.beginTime = CACurrentMediaTime() + 0.3
+	labelEntryAnimation.setValue(username.layer, forKey: "layer")
+	username.layer.add(labelEntryAnimation, forKey: nil)
+
+	labelEntryAnimation.beginTime = CACurrentMediaTime() + 0.4
+	labelEntryAnimation.setValue(password.layer, forKey: "layer")
+	password.layer.add(labelEntryAnimation, forKey: nil)
   }
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
 
-    UIView.animate(withDuration: 0.5, delay: 0.5, usingSpringWithDamping: 0.5,
-      initialSpringVelocity: 0.0,
-      animations: {
-        self.loginButton.center.y -= 30.0
-        self.loginButton.alpha = 1.0
-      },
-      completion: nil
-    )
+	//creating a basic group animation allows you to control the properties of the associated animations all as one unit
+	let groupAnimation = CAAnimationGroup()
+		groupAnimation.beginTime = CACurrentMediaTime() + 0.5
+		groupAnimation.duration = 0.5
+		groupAnimation.fillMode = kCAFillModeBackwards
+		//adding a timing function adds a slight realistic touch
+		groupAnimation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseIn)
+
+	let scaleDown = CABasicAnimation(keyPath: "transform.scale")
+		scaleDown.fromValue = 3.5
+		scaleDown.toValue = 1.0
+	let rotate = CABasicAnimation(keyPath: "transform.rotation")
+		rotate.fromValue = .pi / 4.0
+		rotate.toValue = 0.0
+	let fade = CABasicAnimation(keyPath: "opacity")
+		fade.fromValue = 0.0
+		fade.toValue = 1.0
+
+	groupAnimation.animations = [scaleDown, rotate, fade]
+	loginButton.layer.add(groupAnimation, forKey: nil)
 
 	let flyLeft = CABasicAnimation(keyPath: "position.x")
 	flyLeft.fromValue 	= info.layer.position.x + view.frame.size.width
 	flyLeft.toValue 	= info.layer.position.x
 	flyLeft.duration	= 5.0
+//	flyLeft.repeatCount = 2.5
+//	flyLeft.autoreverses = true
+//	flyLeft.speed = 2.0
+//	info.layer.speed = 2.0
+//	view.layer.speed = 2.0
 	info.layer.add(flyLeft, forKey: "infoappear")
 
 	let fadeLabelIn = CABasicAnimation(keyPath: "opacity")
