@@ -22,43 +22,6 @@
 
 import UIKit
 
-// A delay function
-func delay(seconds: Double, completion: @escaping ()-> Void) {
-  DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: completion)
-}
-
-func tintBackgroundColor(layer: CALayer, toColor color: UIColor) {
-	let tintBackground = CASpringAnimation(keyPath: "backgroundColor")
-		tintBackground.fromValue = layer.backgroundColor
-		tintBackground.toValue	 = color
-		tintBackground.duration = 1.0
-
-		tintBackground.damping = 10.0
-		tintBackground.initialVelocity = 0.0
-		tintBackground.stiffness = 100.0
-		tintBackground.mass = 1.0
-		tintBackground.duration = tintBackground.settlingDuration
-
-	layer.add(tintBackground, forKey: nil)
-	layer.backgroundColor = color.cgColor
-}
-
-func roundCorners(layer: CALayer, toRadius radius: CGFloat) {
-	let roundCorners = CASpringAnimation(keyPath: "cornerRadius")
-		roundCorners.fromValue = layer.cornerRadius
-		roundCorners.toValue = radius
-		roundCorners.duration = 0.33
-
-		roundCorners.damping = 10.0
-		roundCorners.initialVelocity = 0.0
-		roundCorners.stiffness = 100.0
-		roundCorners.mass = 1.0
-		roundCorners.duration = roundCorners.settlingDuration
-
-	layer.add(roundCorners, forKey: nil)
-	layer.cornerRadius = radius
-}
-
 class ViewController: UIViewController {
 
   // MARK: IB outlets
@@ -74,8 +37,6 @@ class ViewController: UIViewController {
   @IBOutlet var cloud4: UIImageView!
 
 	var cloudViews: [UIView] = [UIView]()
-
-  // MARK: further UI
 
   let spinner = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
   let status = UIImageView(image: UIImage(named: "banner"))
@@ -125,6 +86,7 @@ class ViewController: UIViewController {
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
 
+	// MARK: BASIC LAYER ANIMATIONS
 	let flyRight = CABasicAnimation(keyPath: "position.x")
 	flyRight.fromValue = -view.bounds.size.width/2
 	flyRight.toValue = view.bounds.size.width/2
@@ -148,6 +110,7 @@ class ViewController: UIViewController {
 		print(fadeIn.beginTime)
 	}
 
+	//MARK: LAYER ANIMATION GROUPS
 	let labelEntryAnimation = CAAnimationGroup()
 		labelEntryAnimation.animations = [flyRight, fadeIn]
 		labelEntryAnimation.delegate = self
@@ -220,6 +183,7 @@ class ViewController: UIViewController {
   func showMessage(index: Int) {
     label.text = messages[index]
 
+	//UIVIEW ANIMATIONS
     UIView.transition(with: status, duration: 0.33,
       options: [.curveEaseOut, .transitionFlipFromBottom],
       animations: {
@@ -255,6 +219,7 @@ class ViewController: UIViewController {
   }
 
   func resetForm() {
+	//UIVIEW TRANSITIONS
     UIView.transition(with: status, duration: 0.2, options: .transitionFlipFromTop,
       animations: {
         self.status.isHidden = true
@@ -279,6 +244,7 @@ class ViewController: UIViewController {
 	}
     )
 
+	//MARK: KEYFRAME ANIMATIONS
 	let wobble = CAKeyframeAnimation(keyPath: "transform.rotation")
 		wobble.duration = 0.25
 		wobble.repeatCount = 4
@@ -287,11 +253,11 @@ class ViewController: UIViewController {
 	heading.layer.add(wobble, forKey: nil)
   }
 
-  // MARK: further methods
 
   @IBAction func login() {
     view.endEditing(true)
 
+	//MARK: UIVIEW SPRING ANIMATIONS
     UIView.animate(withDuration: 1.5, delay: 0.0, usingSpringWithDamping: 0.2,
       initialSpringVelocity: 0.0,
       animations: {
@@ -318,6 +284,7 @@ class ViewController: UIViewController {
 
 	roundCorners(layer: loginButton.layer, toRadius: 25.0)
 
+	//MARK: KEYFRAME ANIMATIONS WITH NSVALUE
 	let balloon = CALayer()
 		balloon.contents = UIImage(named: "balloon")!.cgImage
 		balloon.frame = CGRect(x: -50.0, y: 0.0, width: 50, height: 65.0)
@@ -353,21 +320,10 @@ class ViewController: UIViewController {
 
 	layer.add(cloudMove, forKey: "cloudAnimation")
   }
-
-
-  // MARK: UITextFieldDelegate
-
-  func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-    let nextField = (textField === username) ? password : username
-    nextField?.becomeFirstResponder()
-    return true
-  }
-
 }
 
+//MARK: CAANIMATION DELEGATE
 extension ViewController: CAAnimationDelegate {
-
-
 	func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
 		guard let name = anim.value(forKey: "name") as? String else { return }
 
@@ -397,6 +353,11 @@ extension ViewController: CAAnimationDelegate {
 }
 
 extension ViewController: UITextFieldDelegate {
+	func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+		let nextField = (textField === username) ? password : username
+		nextField?.becomeFirstResponder()
+		return true
+	}
 	func textFieldDidBeginEditing(_ textField: UITextField) {
 		guard let runningAnimations = info.layer.animationKeys() else { return }
 		info.layer.removeAnimation(forKey: "infoappear")
@@ -405,6 +366,7 @@ extension ViewController: UITextFieldDelegate {
 		guard let text = textField.text else { return }
 
 		if text.count < 5 {
+			//MARK: LAYER SPRING ANIMATIONS
 			let jump = CASpringAnimation(keyPath: "position.y")
 				jump.fromValue = textField.layer.position.y + 1.0
 				jump.toValue = textField.layer.position.y
@@ -429,4 +391,43 @@ extension ViewController: UITextFieldDelegate {
 			textField.layer.cornerRadius = 5
 		}
 	}
+}
+
+
+//MARK: GLOBAL FUNCTIONS
+
+func delay(seconds: Double, completion: @escaping ()-> Void) {
+	DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: completion)
+}
+
+func tintBackgroundColor(layer: CALayer, toColor color: UIColor) {
+	let tintBackground = CASpringAnimation(keyPath: "backgroundColor")
+	tintBackground.fromValue = layer.backgroundColor
+	tintBackground.toValue	 = color
+	tintBackground.duration = 1.0
+
+	tintBackground.damping = 10.0
+	tintBackground.initialVelocity = 0.0
+	tintBackground.stiffness = 100.0
+	tintBackground.mass = 1.0
+	tintBackground.duration = tintBackground.settlingDuration
+
+	layer.add(tintBackground, forKey: nil)
+	layer.backgroundColor = color.cgColor
+}
+
+func roundCorners(layer: CALayer, toRadius radius: CGFloat) {
+	let roundCorners = CASpringAnimation(keyPath: "cornerRadius")
+	roundCorners.fromValue = layer.cornerRadius
+	roundCorners.toValue = radius
+	roundCorners.duration = 0.33
+
+	roundCorners.damping = 10.0
+	roundCorners.initialVelocity = 0.0
+	roundCorners.stiffness = 100.0
+	roundCorners.mass = 1.0
+	roundCorners.duration = roundCorners.settlingDuration
+
+	layer.add(roundCorners, forKey: nil)
+	layer.cornerRadius = radius
 }
